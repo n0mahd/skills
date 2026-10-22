@@ -1,0 +1,4 @@
+interface:
+  display_name: "Security Audit"
+  short_description: "Audit software before installing or running it"
+  default_prompt: "Use $security-audit to inspect this software for malicious behavior, telemetry, dependency risk, and release provenance before I install it."
