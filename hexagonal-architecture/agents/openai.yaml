@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hexagonal Architecture"
+  short_description: "Design, assess or migrate a codebase to ports and adapters"
+  default_prompt: "Use $hexagonal-architecture to assess this codebase and propose the first slice to move to ports and adapters, with fakes and a boundary check."
