@@ -1,12 +1,13 @@
 ---
 name: codebase-cleanup
-description: Make a codebase simple and easy for agents to work in, without losing features, looks or behaviour. Two depths. A map pass builds or refreshes the strategic map (strategy page with purpose, priorities, invariants, direction and debt; module map; enforced import boundaries; a test that fails when docs drift). A full cleanup also audits the repo in parallel, removes dead code and duplication, splits oversized files into cohesive modules, gives each concern one home, fixes stale docs and flaky tests, then finishes with the map pass. Use when the user asks to clean up, simplify, tidy, restructure, revamp or "make a codebase agent-friendly"; when a repo has no strategy or architecture docs or they contradict the code; or before a large refactor. For reviewing a single diff use simplify instead.
+description: Make a codebase simple and easy for agents to work in, without losing features, looks or behaviour. Two depths. A map pass builds or refreshes the strategic map (strategy page with purpose, priorities, invariants, direction and debt; module map; enforced import boundaries; a test that fails when docs drift). A full cleanup also audits the repo in parallel, removes dead weight (dead code, no-op functions, functions only tests use, empty folders, orphan files, and stale references to things that no longer exist in docs, config, deps and env vars) and duplication, splits oversized files into cohesive modules, gives each concern one home, fixes stale docs and flaky tests, then finishes with the map pass. Use when the user asks to clean up, simplify, tidy, restructure, revamp or "make a codebase agent-friendly"; when a repo has no strategy or architecture docs or they contradict the code; or before a large refactor. For reviewing a single diff use simplify instead.
 ---
 
 # Codebase cleanup
 
 Leave a repo simpler and easier for an agent to reason about, doing exactly what it did before. Two
-goals, in this order: **simplicity** (fewer, clearer files; one way to do each thing; no dead code)
+goals, in this order: **simplicity** (fewer, clearer files; one way to do each thing; nothing that
+no longer affects the code)
 and **legibility for agents** (what the code is for, what must not break, where it is heading, where
 everything lives, and checks that keep those facts true). The global "Strategic maintenance" rules
 in `~/Knowledge/AGENTS.md` assume the map this skill builds exists.
@@ -15,7 +16,9 @@ in `~/Knowledge/AGENTS.md` assume the map this skill builds exists.
 
 - **Map pass**: the user wants the repo mapped or made agent-friendly, the docs are missing or
   stale, or a refactor is about to start. Survey, fix drift, write the strategy page and module map,
-  add guardrails, and do only small mechanical moves. Big splits and dedup go in the debt register.
+  add guardrails, and do only small mechanical moves: these include removing empty folders and
+  references to paths, commands and env vars that no longer exist. Big splits, dedup and symbol
+  removal go in the debt register.
 - **Full cleanup**: the user asks to clean up, simplify or restructure. Everything in phases 0-6
   below, ending with the map pass. If unsure, do the map pass and offer the full cleanup with the
   debt register as its plan.
@@ -56,6 +59,9 @@ and leftovers (worktrees, debt). Never merge or deploy without asking.
    - Gates: what CI or the deploy actually runs, and how it gets the code (a `git archive` copy has
      no `.git`, so a check that shells out to git fails there).
    - Invariants from docs, tests and memory, each with what enforces it, or "convention".
+   - Dead-weight leads: `scripts/dead_weight.py <repo>` (empty folders, empty files, orphan
+     files, no-op functions, missing paths in docs and `package.json` scripts) plus the stack's
+     dead-code tool. Leads, not verdicts.
 6. Pick dev-only ports and a dev-only database for yourself, and different ones per sub-agent.
 
 ## Phase 1: audit in parallel (full cleanup; read-only)
@@ -66,7 +72,12 @@ evidence for every claim (a repo-wide grep proving "unused", both copies of a "d
 value/risk order and a word cap. Meanwhile read the entry points and the central dispatcher yourself;
 you need your own model of the code to judge the findings.
 
-Triage into **do** (behaviour-preserving: dead code, duplication, moves, splits, names, stale
+Dead weight gets its own hunt, not a line in the audit: anything that no longer affects what the
+code does, how it is built, tested, deployed or understood. [references/dead-weight.md](references/dead-weight.md)
+has the catalogue (structure, code, references to things that are gone), how to prove each item
+dead, and how to remove it. Give each audit agent the catalogue.
+
+Triage into **do** (behaviour-preserving: dead weight, duplication, moves, splits, names, stale
 comments and docs, flaky tests), **fix as a bug** (clear defects users hit; small separate commits,
 each proven by a check that fails before and passes after) and **ask the owner** (behaviour, API,
 visible text, data, security, production config including env var names production reads). Security
@@ -95,6 +106,9 @@ stay yours; implementers report doc changes instead of making them.
 
 - **Pure moves first, as their own commit**: `split_blocks.py split` then `verify` proves every moved
   block byte-identical. Rewrite imports with a script, not by hand. Refine in later commits.
+- **Remove dead weight as whole chains**: the code, its tests and fixtures, exports, docs, config
+  entries, env vars in examples, dependencies only it used, and folders left empty, in one commit.
+  Delete; never comment out or rename to `_unused`. Then search for the name again: zero hits.
 - **One topic per commit**, message says why. Fast checks after every step, full suite per area.
 - After extracting a helper, grep the target files for locals of the same name (shadowing gives
   "Cannot access X before initialization"). Keep imports at the top; one below its first use fails.
@@ -170,6 +184,9 @@ A codebase is easy for an agent when:
 - **Invariants are executable.** Each "must never" has a test, type or lint rule; convention-only
   ones are listed as debt.
 - **The gate is honest.** What a merge must pass is what the docs say it must pass.
+- **Everything present earns its place.** No empty folders, no functions that do nothing, no code
+  only tests call, no commented-out code, no docs, config, deps or env vars naming things that are
+  gone. A reader should be able to assume anything they find matters.
 
 ## Good runs and bad runs
 
@@ -181,6 +198,8 @@ Good runs:
   re-tested after merging.
 - Behaviour changes surfaced to the owner with a recommendation, not slipped in.
 - Guardrails left behind (drift check, boundary check, cache-key check), so it stays clean.
+- Dead weight removed whole: a deleted function took its tests, exports, docs and config lines
+  with it, and the folder it left empty.
 
 Bad runs:
 - Editing a shared checkout, or starting without a baseline.
@@ -190,12 +209,19 @@ Bad runs:
 - Accepting flaky or "known" failures that hide real regressions.
 - Docs left describing the old layout: a stale map is worse than none.
 - Losing uncommitted work to a careless `git checkout` or `reset`.
+- Calling something unused from a grep that missed dynamic reach (string-built names, registries,
+  config-named handlers) or callers outside the repo.
+- Keeping a production function alive because its own tests call it.
 
 ## Files
 
 - `scripts/split_blocks.py`: outline, dependency graph, cycle check, generated split and
   byte-identity verify for large JS/TS files (CommonJS or ESM). Run `outline` first; any LOOSE line
   means the file doesn't fit the column-0 shape and needs hand care.
+- `scripts/dead_weight.py`: read-only scan for dead-weight leads (empty folders, empty files,
+  orphan files, no-op functions, missing paths in Markdown and `package.json` scripts). `--json`
+  for machine output.
+- `references/dead-weight.md`: what counts as dead weight, how to prove it, how to remove it.
 - `references/briefs.md`: audit-agent and implementer-agent briefs.
 - `templates/strategy.md`: the strategy page.
 - `templates/architecture-map.test.ts`: the map/drift test to adapt.

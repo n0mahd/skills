@@ -14,8 +14,15 @@ and (2) readability for AI agents, WITHOUT losing any features, behaviour, looks
 concrete, prioritized findings list. For each: file:line, what it is, the proposed change, and
 evidence (a grep across the WHOLE repo incl. tests/scripts/HTML showing something is unused, or the
 duplicated snippets side by side). Hunt for:
-- Dead code: unused exports/functions/files/deps/env vars/CSS selectors, compat shims for removed
-  features, unreachable branches (check dynamic lookups and string-built names before claiming).
+- Dead weight (catalogue and proof rules in <SKILL DIR>/references/dead-weight.md; read it first):
+  unused exports/functions/files/deps/env vars/CSS selectors; functions that do nothing (empty,
+  pass-through, return the input); functions only tests call, with their tests; unused fixtures,
+  fakes and mocks; empty folders and empty files; commented-out code; stale suppressions; flags
+  fully rolled out; compat shims for removed features; unreachable branches; docs, comments,
+  config, CI, ignore files and env examples naming things that no longer exist. Leads:
+  `<SKILL DIR>/scripts/dead_weight.py <REPO>`. Check dynamic reach (string-built names,
+  registries, config-named handlers, entry points) and callers outside the repo before claiming.
+  For each removal, list the whole chain that goes with it.
 - Duplication: the same helper or query in several files; propose its single home.
 - Indirection that adds nothing: re-export files, one-caller wrappers, params threaded everywhere.
 - Oversized files: propose a split into cohesive modules (names per module, cross-dependencies,

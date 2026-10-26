@@ -3,7 +3,7 @@
 Agent skills shared by every agent harness (Claude Code, Codex, OpenCode, Pi). Each folder is
 one skill with a `SKILL.md`.
 
-- `codebase-cleanup`: map a repo's strategy and architecture, then simplify it without changing behaviour.
+- `codebase-cleanup`: map a repo's strategy and architecture, then simplify it and remove dead weight (dead code, empty folders, stale references) without changing behaviour.
 - `frontend-design`: distinctive, intentional visual design for new or reshaped UI.
 - `hexagonal-architecture`: design, assess or migrate a codebase to ports and adapters with DDD, dependency injection and fakes over mocks.
 - `privacy-check`: privacy and security gate for apps that hold user data, before merging or deploying.
