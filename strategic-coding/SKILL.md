@@ -48,7 +48,8 @@ Before editing, build a one-paragraph picture of where this sits:
   `documents/strategy.md`, `ARCHITECTURE.md`, ADRs). Note the priorities, the invariants that touch
   this area, the stated direction, the blast-radius table and the debt register. If there is no
   map, infer the essentials from the code (entry points, who calls this, layer order) and say the
-  map is missing.
+  map is missing. If the repo uses ports and adapters (hexagonal architecture), also read
+  [references/hexagonal.md](references/hexagonal.md).
 - **Home**: which module owns the concept involved (auth, config, money, dates, retries,
   validation, a domain entity). New code and fixes belong there, not wherever was convenient to
   reach.
@@ -169,6 +170,11 @@ Keep it proportionate: three lines for a standard task is fine.
 - [references/questions.md](references/questions.md): question bank per step, worked examples for
   features, fixes and config changes, and a template for the strategic note. Read it for deep runs
   or when unsure which level fits.
+- [references/hexagonal.md](references/hexagonal.md): the loop mapped onto ports and adapters:
+  where each kind of change belongs, the levels in hexagonal terms, fixes by layer, partly
+  migrated codebases, and when to hand off to `hexagonal-architecture`. Read it only when the repo
+  is hexagonal or moving there.
 
 Related skills: `codebase-cleanup` builds the strategy page and module map this skill reads;
-`hexagonal-architecture` covers the case where the right level is a boundary redesign.
+`hexagonal-architecture` takes over when the right level is a new port, a new bounded context or
+migrating a slice.

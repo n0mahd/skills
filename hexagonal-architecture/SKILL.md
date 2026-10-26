@@ -45,6 +45,10 @@ ideas.
 
 If unsure, run Assess and offer Migrate with the assessment as its plan.
 
+Day-to-day features and fixes in a codebase that is already hexagonal don't need this skill: use
+`strategic-coding`, whose `references/hexagonal.md` covers where changes belong and hands back
+here when a change needs a new port, a new context or a migrated slice.
+
 ## Before any change
 
 - Read the repo's own docs (README, CLAUDE.md, AGENTS.md, ARCHITECTURE.md, ADRs) and follow them
