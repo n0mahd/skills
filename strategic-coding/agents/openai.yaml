@@ -1,0 +1,4 @@
+interface:
+  display_name: "Strategic Coding"
+  short_description: "Do every coding task with the bigger picture in view"
+  default_prompt: "Use $strategic-coding for this task: place it in the codebase, find the real need or root cause and related code, choose the level of the change on purpose, and make sure it fits the codebase's direction."
